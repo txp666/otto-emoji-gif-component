@@ -30,7 +30,7 @@ Otto Robot Emoji GIF Component for ESP-IDF
 ```yaml
 dependencies:
   otto_emoji_gif:
-    version: "^1.0.2"
+    version: "^1.0.4"
     # 或者使用本地路径
     # path: "../path/to/otto-emoji-gif-component"
 ```
