@@ -60,6 +60,7 @@ jobs:
           directories: >
             .
           namespace: "txp666"
+          name: "otto-emoji-gif-component"
           api_token: ${{ secrets.IDF_COMPONENT_API_TOKEN }}
 
       - name: Summary
