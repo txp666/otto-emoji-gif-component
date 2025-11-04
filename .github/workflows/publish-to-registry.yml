@@ -3,15 +3,15 @@ name: Publish to ESP Component Registry
 on:
   push:
     tags:
-      - 'v*'  # 当推送版本标签（如 v1.0.3）时触发
+      - 'v*'  # Trigger when pushing version tags (e.g., v1.0.3)
   release:
-    types: [published]  # 当创建 Release 时触发
+    types: [published]  # Trigger when creating Release
 
 jobs:
   publish:
     runs-on: ubuntu-latest
     permissions:
-      contents: write  # 需要写入权限以创建 Release
+      contents: write  # Need write permission to create Release
     
     steps:
       - name: Checkout code
@@ -21,12 +21,12 @@ jobs:
 
       - name: Verify idf_component.yml
         run: |
-          echo "检查 idf_component.yml 文件..."
+          echo "Checking idf_component.yml file..."
           if [ ! -f "idf_component.yml" ]; then
-            echo "❌ 错误: idf_component.yml 文件不存在"
+            echo "Error: idf_component.yml file not found"
             exit 1
           fi
-          echo "✅ idf_component.yml 文件存在"
+          echo "idf_component.yml file exists"
           cat idf_component.yml
 
       - name: Extract version
@@ -40,7 +40,7 @@ jobs:
             VERSION=$(grep '^version:' idf_component.yml | awk '{print $2}' | tr -d '"' | tr -d "'")
           fi
           echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "📦 版本: $VERSION"
+          echo "Version: $VERSION"
 
       - name: Create Release if not exists
         if: github.event_name == 'push'
@@ -48,22 +48,22 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           TAG_NAME="${{ github.ref_name }}"
-          VERSION="${{ steps.get_version.outputs.version }}"
           
-          # 检查 Release 是否已存在
+          # Check if Release already exists
           if curl -s -H "Authorization: token $GITHUB_TOKEN" \
             "https://api.github.com/repos/txp666/otto-emoji-gif-component/releases/tags/$TAG_NAME" | grep -q '"id"'; then
-            echo "✅ Release $TAG_NAME 已存在，跳过创建"
+            echo "Release $TAG_NAME already exists, skipping creation"
           else
-            echo "📦 创建 Release $TAG_NAME..."
+            echo "Creating Release $TAG_NAME..."
             curl -X POST \
               -H "Authorization: token $GITHUB_TOKEN" \
               -H "Accept: application/vnd.github.v3+json" \
+              -H "Content-Type: application/json; charset=utf-8" \
               "https://api.github.com/repos/txp666/otto-emoji-gif-component/releases" \
               -d "{
                 \"tag_name\": \"$TAG_NAME\",
-                \"name\": \"版本 $VERSION\",
-                \"body\": \"版本 $VERSION\\n\\n组件将自动同步到 ESP Component Registry。\\n\\n查看组件: https://components.espressif.com/components/txp666/otto-emoji-gif-component\",
+                \"name\": \"$TAG_NAME\",
+                \"body\": \"$TAG_NAME\\n\\nComponent will be automatically synced to ESP Component Registry.\\n\\nView component: https://components.espressif.com/components/txp666/otto-emoji-gif-component\",
                 \"draft\": false,
                 \"prerelease\": false
               }"
@@ -73,31 +73,31 @@ jobs:
         env:
           IDF_COMPONENT_API_TOKEN: ${{ secrets.IDF_COMPONENT_API_TOKEN }}
         run: |
-          echo "🔄 触发 ESP Component Registry 同步..."
+          echo "Triggering ESP Component Registry sync..."
           
           if [ -n "$IDF_COMPONENT_API_TOKEN" ]; then
-            echo "使用 API Token 进行同步..."
-            # 如果有 Token，可以尝试通过 API 触发同步
+            echo "Using API Token for sync..."
+            # Try to trigger sync via API if token is available
             curl -X POST \
               -H "Authorization: Bearer $IDF_COMPONENT_API_TOKEN" \
               -H "Content-Type: application/json" \
               "https://api.components.espressif.com/v1/webhooks/github" \
               -d "{\"repository\": \"txp666/otto-emoji-gif-component\", \"tag\": \"${{ github.ref_name }}\"}" \
-              || echo "⚠️  API 调用失败，将通过自动扫描同步"
+              || echo "API call failed, will sync via automatic scan"
           else
-            echo "ℹ️  IDF_COMPONENT_API_TOKEN 未设置"
-            echo "组件将通过 ESP Component Registry 的自动扫描同步（通常需要几分钟到几小时）"
-            echo "获取 Token: https://components.espressif.com/ 登录后 -> 设置 -> Tokens"
+            echo "IDF_COMPONENT_API_TOKEN not set"
+            echo "Component will be synced via ESP Component Registry automatic scan (may take minutes to hours)"
+            echo "Get Token: https://components.espressif.com/ -> Settings -> Tokens"
           fi
 
       - name: Summary
         run: |
-          echo "## 📦 组件发布信息" >> $GITHUB_STEP_SUMMARY
+          echo "## Component Release Info" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "- **版本**: ${{ steps.get_version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Version**: ${{ steps.get_version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Tag**: ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **仓库**: https://github.com/txp666/otto-emoji-gif-component" >> $GITHUB_STEP_SUMMARY
-          echo "- **组件链接**: https://components.espressif.com/components/txp666/otto-emoji-gif-component" >> $GITHUB_STEP_SUMMARY
+          echo "- **Repository**: https://github.com/txp666/otto-emoji-gif-component" >> $GITHUB_STEP_SUMMARY
+          echo "- **Component Link**: https://components.espressif.com/components/txp666/otto-emoji-gif-component" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "组件将自动同步到 ESP Component Registry，请稍后查看。" >> $GITHUB_STEP_SUMMARY
+          echo "Component will be automatically synced to ESP Component Registry." >> $GITHUB_STEP_SUMMARY
 
