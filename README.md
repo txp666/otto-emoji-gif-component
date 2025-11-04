@@ -19,9 +19,7 @@ Otto Robot Emoji GIF Component for ESP-IDF
 
 ## 系统要求
 
-- ESP-IDF >= 5.4.0
 - LVGL >= 9.0
-- 支持的芯片：ESP32, ESP32-S3, ESP32-C3, ESP32-C6, ESP32-H2, ESP32-P4
 
 ## 安装方法
 
@@ -116,13 +114,6 @@ otto-emoji-gif-component/
     └── anger.c               # 愤怒表情GIF数据
 ```
 
-## 技术细节
-
-- 所有 GIF 资源都经过优化，适合在嵌入式设备上使用
-- 使用 LVGL 的 GIF 库进行渲染
-- 支持透明背景
-- 文件大小经过优化，平衡了画质和存储空间
-
 ## 许可证
 
 MIT License - 详见 [LICENSE](LICENSE) 文件
@@ -130,23 +121,6 @@ MIT License - 详见 [LICENSE](LICENSE) 文件
 ## 贡献
 
 欢迎提交问题和拉取请求。在贡献代码之前，请阅读贡献指南。
-
-## 更新日志
-
-### v1.0.2 (2025)
-
-- bug fix
-
-### v1.0.1 (2025)
-
-- 删除示例项目，简化组件结构
-- 优化组件发布配置
-
-### v1.0.0 (2025)
-
-- 初始版本发布
-- 包含 6 个基础表情 GIF
-- 支持 ESP-IDF 5.4.0+和 LVGL 9.0+
 
 ## 联系方式
 
