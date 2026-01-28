@@ -33,7 +33,7 @@ static const emotion_map_t emotion_maps[] = {
 };
 
 const char* otto_emoji_gif_get_version(void) {
-    return "1.0.2";
+    return "1.0.5";
 }
 
 int otto_emoji_gif_get_count(void) {
