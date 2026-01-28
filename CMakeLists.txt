@@ -26,7 +26,7 @@ idf_component_register(
 
 # 添加编译定义
 target_compile_definitions(${COMPONENT_LIB}
-    PRIVATE OTTO_EMOJI_GIF_VERSION="1.0.3"
+    PRIVATE OTTO_EMOJI_GIF_VERSION="1.0.5"
 )
 
 # 输出调试信息
