@@ -1,10 +1,10 @@
 ## IDF Component Manager Manifest File
-## 组件注册表: https://components.espressif.com/
+## Component registry: https://components.espressif.com/
 dependencies:
   lvgl/lvgl: ">=9.0"
 
-version: "1.0.6"
-description: "Otto机器人GIF表情资源包 - 包含6个动态表情GIF"
+version: "1.1.0"
+description: "Otto robot GIF emoji resource pack - 6 animated GIF emojis (gifs folder only)"
 repository: "https://github.com/txp666/otto-emoji-gif-component"
 license: "MIT"
 url: "https://github.com/txp666/otto-emoji-gif-component"
