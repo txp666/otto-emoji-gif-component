@@ -3,7 +3,7 @@
 dependencies:
   lvgl/lvgl: ">=9.0"
 
-version: "1.1.0"
+version: "1.1.1"
 description: "Otto robot GIF emoji resource pack - 6 animated GIF emojis (gifs folder only)"
 repository: "https://github.com/txp666/otto-emoji-gif-component"
 license: "MIT"

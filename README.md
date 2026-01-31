@@ -20,7 +20,7 @@ Add to your project's `idf_component.yml`:
 
 ```yaml
 dependencies:
-  txp666/otto-emoji-gif-component: "^1.1.0"
+  txp666/otto-emoji-gif-component: "^1.1.1"
 ```
 
 In code:
