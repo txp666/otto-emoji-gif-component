@@ -2,7 +2,7 @@
  * @file otto_emoji_gif.h
  * @brief Otto robot GIF emoji component - gifs folder only
  *
- * This component provides 6 GIF files in the gifs/ directory.
+ * This component provides 12 GIF files in the gifs/ directory.
  * Load them via LVGL from filesystem or embed in your project.
  */
 
@@ -16,11 +16,11 @@ extern "C" {
 /** Component version string */
 const char *otto_emoji_gif_get_version(void);
 
-/** Number of GIF emojis (6) */
+/** Number of GIF emojis (12) */
 int otto_emoji_gif_get_count(void);
 
-/** Get GIF filename by index (0..5): staticstate, sad, happy, scare, buxue,
- * anger */
+/** Get GIF filename by index (0..11): staticstate, sad, happy, scare, buxue,
+ * anger, thinking, listening, speaking, confused, loving, sleepy */
 const char *otto_emoji_gif_get_name(int index);
 
 #ifdef __cplusplus
