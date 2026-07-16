@@ -1,9 +1,9 @@
-"""Generate the AI interaction GIFs in ``gifs/``.
+"""Generate Xiaozhi-compatible Otto GIF expressions in ``gifs/``.
 
 The drawings intentionally use the same visual vocabulary as the original Otto
 assets: a 240 x 240 black display, white geometric eyes, antialiased edges, and
-an 80 ms frame cadence.  Run this file with Pillow installed to regenerate the
-six AI-specific animations.
+an 80 ms frame cadence. Run this file with Pillow installed to regenerate the
+scripted standard expressions.
 """
 
 from __future__ import annotations
@@ -139,6 +139,50 @@ def listening_arc(
     )
 
 
+def stroke(
+    canvas: Image.Image,
+    points: list[tuple[float, float]],
+    width: float,
+    *,
+    fill: int = FOREGROUND,
+) -> None:
+    scaled = [(round(x * SCALE), round(y * SCALE)) for x, y in points]
+    line_width = max(1, round(width * SCALE))
+    draw = ImageDraw.Draw(canvas)
+    draw.line(scaled, fill=fill, width=line_width, joint="curve")
+    radius = line_width / 2
+    for x, y in (scaled[0], scaled[-1]):
+        draw.ellipse((x - radius, y - radius, x + radius, y + radius), fill=fill)
+
+
+def neutral_pair(canvas: Image.Image, amount: float) -> None:
+    size = 78 * (1 - amount)
+    if size >= 1:
+        ellipse(canvas, 73, 120, size, size)
+        ellipse(canvas, 167, 120, size, size)
+
+
+def ring_eye(
+    canvas: Image.Image,
+    center_x: float,
+    center_y: float,
+    width: float,
+    height: float,
+    pupil_x: float = 0,
+    pupil_y: float = 0,
+) -> None:
+    ellipse(canvas, center_x, center_y, width, height)
+    ellipse(canvas, center_x, center_y, width * 0.58, height * 0.62, fill=0)
+    ellipse(canvas, center_x + pupil_x, center_y + pupil_y,
+            width * 0.18, width * 0.18)
+
+
+def sparkle(canvas: Image.Image, center_x: float, center_y: float,
+            size: float) -> None:
+    stroke(canvas, [(center_x - size, center_y), (center_x + size, center_y)], 4)
+    stroke(canvas, [(center_x, center_y - size), (center_x, center_y + size)], 4)
+
+
 def render_thinking(frame_index: int) -> Image.Image:
     amount = expression_amount(frame_index)
     phase = frame_index / (FRAME_COUNT - 1)
@@ -156,40 +200,6 @@ def render_thinking(frame_index: int) -> Image.Image:
     if center_size >= 1:
         bounce_center = 5 * amount * math.sin(phase * 4 * math.pi + 4 * math.pi / 3)
         ellipse(canvas, 120, 120 + bounce_center, center_size, center_size)
-    return downsample(canvas)
-
-
-def render_listening(frame_index: int) -> Image.Image:
-    amount = expression_amount(frame_index)
-    phase = frame_index / (FRAME_COUNT - 1)
-    pulse = 1 + 0.04 * amount * math.sin(phase * 6 * math.pi)
-    follow = 2.5 * amount * math.sin(phase * 2 * math.pi)
-    canvas = new_canvas()
-
-    eye_width = lerp(78, 57, amount) * pulse
-    eye_height = lerp(76, 96, amount) * pulse
-    ellipse(canvas, lerp(73, 82, amount) + follow, 120, eye_width, eye_height)
-    ellipse(canvas, lerp(167, 158, amount) + follow, 120, eye_width, eye_height)
-
-    if amount > 0.18:
-        arc_width = lerp(0, 6, (amount - 0.18) / 0.82)
-        listening_arc(canvas, (16, 72, 70, 168), 110, 250, arc_width)
-        listening_arc(canvas, (170, 72, 224, 168), -70, 70, arc_width)
-    return downsample(canvas)
-
-
-def render_speaking(frame_index: int) -> Image.Image:
-    amount = expression_amount(frame_index)
-    phase = frame_index / (FRAME_COUNT - 1)
-    canvas = new_canvas()
-
-    rhythm_left = (math.sin(phase * 10 * math.pi) + 1) / 2
-    rhythm_right = (math.sin(phase * 10 * math.pi + math.pi) + 1) / 2
-    left_height = lerp(76, lerp(46, 94, rhythm_left), amount)
-    right_height = lerp(76, lerp(46, 94, rhythm_right), amount)
-    eye_width = lerp(78, 58, amount)
-    rounded_eye(canvas, 76, 120, eye_width, left_height)
-    rounded_eye(canvas, 164, 120, eye_width, right_height)
     return downsample(canvas)
 
 
@@ -262,13 +272,191 @@ def render_sleepy(frame_index: int) -> Image.Image:
     return downsample(canvas)
 
 
+def render_laughing(frame_index: int) -> Image.Image:
+    amount = expression_amount(frame_index)
+    phase = frame_index / (FRAME_COUNT - 1)
+    canvas = new_canvas()
+    neutral_pair(canvas, amount)
+    width = 61 * amount
+    height = 50 * amount
+    if width >= 2:
+        bounce = 4 * amount * math.sin(phase * 6 * math.pi)
+        for center_x in (73, 167):
+            listening_arc(canvas,
+                          (center_x - width / 2, 100 + bounce - height / 2,
+                           center_x + width / 2, 100 + bounce + height / 2),
+                          185, 355, 12 * amount)
+        fall = (phase * 4 % 1) * 25
+        ellipse(canvas, 37, 119 + fall, 10 * amount, 18 * amount)
+        ellipse(canvas, 203, 132 + (25 - fall), 10 * amount, 18 * amount)
+    return downsample(canvas)
+
+
+def render_funny(frame_index: int) -> Image.Image:
+    amount = expression_amount(frame_index)
+    phase = frame_index / (FRAME_COUNT - 1)
+    canvas = new_canvas()
+    neutral_pair(canvas, amount)
+    wobble = 6 * amount * math.sin(phase * 4 * math.pi)
+    if amount > 0.02:
+        ellipse(canvas, 72, 116 + wobble, 78 * amount, 96 * amount)
+        rounded_eye(canvas, 168, 125 - wobble / 2, 72 * amount,
+                    max(2, 18 * amount), angle=-18 * amount)
+        sparkle(canvas, 202, 78, 10 * amount)
+    return downsample(canvas)
+
+
+def render_crying(frame_index: int) -> Image.Image:
+    amount = expression_amount(frame_index)
+    phase = frame_index / (FRAME_COUNT - 1)
+    canvas = new_canvas()
+    neutral_pair(canvas, amount)
+    if amount > 0.02:
+        rounded_eye(canvas, 73, 106, 70 * amount, max(2, 20 * amount),
+                    angle=12 * amount)
+        rounded_eye(canvas, 167, 106, 70 * amount, max(2, 20 * amount),
+                    angle=-12 * amount)
+        fall = (phase * 3 % 1) * 52
+        for x, offset in ((59, 0), (83, 19), (153, 27), (177, 8)):
+            y = 126 + ((fall + offset) % 52)
+            ellipse(canvas, x, y, 10 * amount, 23 * amount)
+    return downsample(canvas)
+
+
+def render_shocked(frame_index: int) -> Image.Image:
+    amount = expression_amount(frame_index)
+    phase = frame_index / (FRAME_COUNT - 1)
+    canvas = new_canvas()
+    neutral_pair(canvas, amount)
+    if amount > 0.02:
+        shake = 4 * amount * math.sin(phase * 12 * math.pi)
+        ring_eye(canvas, 73 + shake, 120, 74 * amount, 98 * amount,
+                 0, -5 * amount)
+        ring_eye(canvas, 167 + shake, 120, 74 * amount, 98 * amount,
+                 0, -5 * amount)
+        sparkle(canvas, 120, 55, 9 * amount)
+    return downsample(canvas)
+
+
+def render_winking(frame_index: int) -> Image.Image:
+    amount = expression_amount(frame_index)
+    phase = frame_index / (FRAME_COUNT - 1)
+    canvas = new_canvas()
+    neutral_pair(canvas, amount)
+    if amount > 0.02:
+        bounce = 3 * amount * math.sin(phase * 4 * math.pi)
+        ellipse(canvas, 72, 117 + bounce, 72 * amount, 86 * amount)
+        rounded_eye(canvas, 168, 122 - bounce, 72 * amount,
+                    max(2, 16 * amount), angle=-10 * amount)
+        sparkle(canvas, 210, 92, 9 * amount)
+    return downsample(canvas)
+
+
+def render_cool(frame_index: int) -> Image.Image:
+    amount = expression_amount(frame_index)
+    phase = frame_index / (FRAME_COUNT - 1)
+    canvas = new_canvas()
+    neutral_pair(canvas, amount)
+    if amount > 0.02:
+        tilt = 2 * amount * math.sin(phase * 2 * math.pi)
+        rounded_eye(canvas, 70, 118 + tilt, 82 * amount, 46 * amount,
+                    angle=4 * amount, radius=12)
+        rounded_eye(canvas, 170, 118 - tilt, 82 * amount, 46 * amount,
+                    angle=-4 * amount, radius=12)
+        stroke(canvas, [(109, 113), (131, 113)], 8 * amount)
+        stroke(canvas, [(30, 102), (16, 94)], 5 * amount)
+        stroke(canvas, [(210, 102), (224, 94)], 5 * amount)
+    return downsample(canvas)
+
+
+def render_relaxed(frame_index: int) -> Image.Image:
+    amount = expression_amount(frame_index)
+    phase = frame_index / (FRAME_COUNT - 1)
+    canvas = new_canvas()
+    neutral_pair(canvas, amount)
+    if amount > 0.02:
+        drift = 4 * amount * math.sin(phase * 2 * math.pi)
+        listening_arc(canvas, (39, 105 + drift, 107, 143 + drift),
+                      10, 170, 10 * amount)
+        listening_arc(canvas, (133, 105 + drift, 201, 143 + drift),
+                      10, 170, 10 * amount)
+    return downsample(canvas)
+
+
+def render_delicious(frame_index: int) -> Image.Image:
+    amount = expression_amount(frame_index)
+    phase = frame_index / (FRAME_COUNT - 1)
+    canvas = new_canvas()
+    neutral_pair(canvas, amount)
+    if amount > 0.02:
+        bounce = 3 * amount * math.sin(phase * 6 * math.pi)
+        listening_arc(canvas, (39, 91 + bounce, 107, 145 + bounce),
+                      185, 355, 11 * amount)
+        rounded_eye(canvas, 168, 120 - bounce, 70 * amount,
+                    max(2, 18 * amount), angle=-8 * amount)
+        ellipse(canvas, 205, 145 + bounce, 13 * amount, 13 * amount)
+    return downsample(canvas)
+
+
+def render_kissy(frame_index: int) -> Image.Image:
+    amount = expression_amount(frame_index)
+    phase = frame_index / (FRAME_COUNT - 1)
+    canvas = new_canvas()
+    neutral_pair(canvas, amount)
+    if amount > 0.02:
+        rounded_eye(canvas, 70, 119, 68 * amount, max(2, 17 * amount),
+                    angle=8 * amount)
+        rounded_eye(canvas, 157, 119, 68 * amount, max(2, 17 * amount),
+                    angle=-8 * amount)
+        rise = 18 * amount * math.sin(math.pi * phase)
+        heart(canvas, 207, 125 - rise, 28 * amount, 26 * amount)
+    return downsample(canvas)
+
+
+def render_confident(frame_index: int) -> Image.Image:
+    amount = expression_amount(frame_index)
+    phase = frame_index / (FRAME_COUNT - 1)
+    canvas = new_canvas()
+    neutral_pair(canvas, amount)
+    if amount > 0.02:
+        lift = 4 * amount * math.sin(phase * 2 * math.pi)
+        rounded_eye(canvas, 73, 119 - lift, 76 * amount,
+                    max(2, 25 * amount), angle=-8 * amount)
+        rounded_eye(canvas, 167, 115 + lift, 76 * amount,
+                    max(2, 25 * amount), angle=8 * amount)
+    return downsample(canvas)
+
+
+def render_silly(frame_index: int) -> Image.Image:
+    amount = expression_amount(frame_index)
+    phase = frame_index / (FRAME_COUNT - 1)
+    canvas = new_canvas()
+    neutral_pair(canvas, amount)
+    if amount > 0.02:
+        roam = 8 * amount * math.sin(phase * 4 * math.pi)
+        ring_eye(canvas, 73, 113, 72 * amount, 80 * amount,
+                 10 * amount, roam)
+        ring_eye(canvas, 167, 127, 72 * amount, 80 * amount,
+                 -10 * amount, -roam)
+    return downsample(canvas)
+
+
 RENDERERS: dict[str, Callable[[int], Image.Image]] = {
     "thinking": render_thinking,
-    "listening": render_listening,
-    "speaking": render_speaking,
     "confused": render_confused,
     "loving": render_love,
     "sleepy": render_sleepy,
+    "laughing": render_laughing,
+    "funny": render_funny,
+    "crying": render_crying,
+    "shocked": render_shocked,
+    "winking": render_winking,
+    "cool": render_cool,
+    "relaxed": render_relaxed,
+    "delicious": render_delicious,
+    "kissy": render_kissy,
+    "confident": render_confident,
+    "silly": render_silly,
 }
 
 

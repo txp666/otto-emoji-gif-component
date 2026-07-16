@@ -8,13 +8,15 @@
 #include <stddef.h>
 
 #ifndef OTTO_EMOJI_GIF_VERSION
-#define OTTO_EMOJI_GIF_VERSION "1.2.0"
+#define OTTO_EMOJI_GIF_VERSION "1.3.0"
 #endif
 
 static const char *const gif_names[] = {
-    "staticstate", "sad",       "happy",    "scare",
-    "buxue",       "anger",     "thinking", "listening",
-    "speaking",    "confused",  "loving",   "sleepy"};
+    "neutral",    "happy",      "laughing",  "funny",      "sad",
+    "angry",      "crying",     "loving",    "embarrassed", "surprised",
+    "shocked",    "thinking",   "winking",   "cool",       "relaxed",
+    "delicious",  "kissy",      "confident", "sleepy",     "silly",
+    "confused"};
 
 #define GIF_COUNT ((int)(sizeof(gif_names) / sizeof(gif_names[0])))
 
