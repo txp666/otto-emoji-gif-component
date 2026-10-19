@@ -4,8 +4,9 @@ on:
   push:
     tags:
       - 'v*'  # Trigger when pushing version tags (e.g., v1.0.3)
-  release:
-    types: [published]  # Trigger when creating Release
+
+permissions:
+  contents: write  # Needed to create the GitHub Release
 
 jobs:
   upload_component:
@@ -27,33 +28,6 @@ jobs:
           echo "idf_component.yml file exists"
           cat idf_component.yml
 
-      - name: Create Release if not exists
-        if: github.event_name == 'push'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          TAG_NAME="${{ github.ref_name }}"
-          
-          # Check if Release already exists
-          if curl -s -H "Authorization: token $GITHUB_TOKEN" \
-            "https://api.github.com/repos/txp666/otto-emoji-gif-component/releases/tags/$TAG_NAME" | grep -q '"id"'; then
-            echo "Release $TAG_NAME already exists, skipping creation"
-          else
-            echo "Creating Release $TAG_NAME..."
-            curl -X POST \
-              -H "Authorization: token $GITHUB_TOKEN" \
-              -H "Accept: application/vnd.github.v3+json" \
-              -H "Content-Type: application/json; charset=utf-8" \
-              "https://api.github.com/repos/txp666/otto-emoji-gif-component/releases" \
-              -d "{
-                \"tag_name\": \"$TAG_NAME\",
-                \"name\": \"$TAG_NAME\",
-                \"body\": \"$TAG_NAME\\n\\nComponent will be automatically synced to ESP Component Registry.\\n\\nView component: https://components.espressif.com/components/txp666/otto-emoji-gif-component\",
-                \"draft\": false,
-                \"prerelease\": false
-              }"
-          fi
-
       - name: Upload component to component service
         uses: espressif/upload-components-ci-action@v1
         with:
@@ -62,6 +36,24 @@ jobs:
           namespace: "txp666"
           name: "otto-emoji-gif-component"
           api_token: ${{ secrets.IDF_COMPONENT_API_TOKEN }}
+
+      - name: Create Release if not exists
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG_NAME: ${{ github.ref_name }}
+        run: |
+          if gh release view "$TAG_NAME" --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1; then
+            echo "Release $TAG_NAME already exists, skipping creation"
+          else
+            echo "Creating Release $TAG_NAME..."
+            gh release create "$TAG_NAME" --repo "$GITHUB_REPOSITORY" --verify-tag \
+              --title "$TAG_NAME" \
+              --notes "$TAG_NAME
+
+          Component has been uploaded to ESP Component Registry.
+
+          View component: https://components.espressif.com/components/txp666/otto-emoji-gif-component"
+          fi
 
       - name: Summary
         run: |
