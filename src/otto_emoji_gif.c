@@ -8,7 +8,7 @@
 #include <stddef.h>
 
 #ifndef OTTO_EMOJI_GIF_VERSION
-#define OTTO_EMOJI_GIF_VERSION "1.3.0"
+#define OTTO_EMOJI_GIF_VERSION "1.4.0"
 #endif
 
 static const char *const gif_names[] = {
